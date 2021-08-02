@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/ruchi222/tinyapp_/issues"
   },
-  "homepage": "https://github.com/ruchi222/tinyapp_#readme"
+  "homepage": "https://github.com/ruchi222/tinyapp_#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
 }

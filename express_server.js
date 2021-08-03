@@ -56,9 +56,17 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  let temp = generateRandomString(); // --> 'abcdef'
-  urlDatabase[temp] = req.body.longURL
+  let tempURL = generateRandomString(); 
+  urlDatabase[tempURL] = req.body.longURL
   res.redirect('/urls') // -> GET /urls
+});
+
+// Delete - handle the POST requests on the server
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {

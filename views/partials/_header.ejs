@@ -10,17 +10,22 @@
           <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
         </div>
       </div>
-      <% if (locals.username) { %>
-        <h5>Logged in As: <%= username["email"] %></h5>
+      <% if (user) { %>
+        <h5>Logged in As: <%= user["email"] %></h5>
         <form method="POST" action="/logout">
           <button type="submit" class="btn btn-outline-light" style="margin-left: 2em;">Logout</button>
           </form>
-      <%} else { %>
-      <form class="form-inline" action="/login" method="POST">
+      <% } else { %>
+      <!-- <form class="form-inline" action="/login" method="POST">
         <input type="text" placeholder="Enter Username" name="username" required>
         <button type="submit" class="btn btn-outline-light" style="margin-left: 2em;">Login</button>
-      </form>
-      <%} %>
+      </form> -->
+      <strong><a href="/login">Login</a></strong>
+      |
+      <!-- Not yet a member? -->
+      <strong><a href="/register">Register</a></strong> 
+
+      <% } %>
       
     </nav>
   </header>

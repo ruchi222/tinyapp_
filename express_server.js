@@ -79,7 +79,12 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// -> GET /urls
+// Create a Login page
+
+app.get("/login", (req, res) => {
+  let templateVars = { email: req.body.email, password: req.body.password };
+  res.render("urls_login", templateVars);
+});
 
 app.post("/urls", (req, res) => {
   let tempURL = generateRandomString(); 
@@ -110,10 +115,13 @@ app.get("/register", (req,res) => {
 
 app.post("/register", (req,res) => {
   if (req.body.email === "" || req.body.password === "") {
-    res.status(400).send("Email or Password is Empty!!!");
-  } else if (lookupEmail(req.body.email)) {
-    res.status(400).send("Email is already registered. Try another one!!!");
+    let templateVars = { status: 400, message: "Email or Password is Empty!!!"} 
+    res.render("urls_error", templateVars);
+  } else if (lookupEmail(req.body.email, users)) {
+    let templateVars = { status: 400, message: "Email is already registered. Try another one!!!"}
+    res.render("urls_error", templateVars);
   } else {
+ 
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
@@ -124,6 +132,7 @@ app.post("/register", (req,res) => {
    };
    req.cookies.user_id = id;
    res.redirect("/urls");
+
   }
 });
 

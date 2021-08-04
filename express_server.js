@@ -13,6 +13,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
 function generateRandomString() {
   const alphaN = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const amount = 6;
@@ -24,6 +37,16 @@ function generateRandomString() {
   return output;
 }
 generateRandomString();
+
+/// Function to lookup for existing email
+function lookupEmail(email, users) {
+  for (let key in users) {
+    if (users[key].email === email) {
+      return users[key];
+    }
+  }
+  return false;
+}
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -82,6 +105,28 @@ app.get("/register", (req,res) => {
   };
   res.render("urls_register", templateVars);
 });
+
+// POST - Create a Registration Handler
+
+app.post("/register", (req,res) => {
+  if (req.body.email === "" || req.body.password === "") {
+    res.status(400).send("Email or Password is Empty!!!");
+  } else if (lookupEmail(req.body.email)) {
+    res.status(400).send("Email is already registered. Try another one!!!");
+  } else {
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+   users[id] = {
+     id: id,
+     email: email,
+     password: password,
+   };
+   req.cookies.user_id = id;
+   res.redirect("/urls");
+  }
+});
+
 
 // Delete - handle the POST requests on the server
 

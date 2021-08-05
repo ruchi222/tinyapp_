@@ -3,14 +3,27 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser')
+const bcrypt = require('bcrypt');
+const { getUserByEmail, generateRandomString, urlsForUser }  = require('./helpers');
 
 app.set("view engine", "ejs")
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+      longURL: "https://www.tsn.ca",
+      userID: "aJ48lW"
+  },
+  i3BoGr: {
+      longURL: "https://www.google.ca",
+      userID: "aJ48lW"
+  }
 };
 
 const users = { 
@@ -26,31 +39,35 @@ const users = {
   }
 }
 
-function generateRandomString() {
-  const alphaN = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  const amount = 6;
-  let output = "";
-  for (let i = 0; i < amount; i++) {
-    let CharIndex = Math.floor(Math.random() * alphaN.length);
-    output += alphaN[CharIndex];
-  }
-  return output;
-}
-generateRandomString();
-
-/// Function to lookup for existing email
-
-function lookupEmail(email, users) {
-  for (let key in users) {
-    if (users[key].email === email) {
-      return users[key];
-    }
-  }
-  return false;
-}
-
 app.get("/", (req, res) => {
   res.send(" Welcome to TinyApp Project!");
+});
+
+// Create a Login page
+
+app.get("/login", (req, res) => {
+  const userID = req.cookies["user_id"];
+  const user = users[userID]
+  let templateVars = { user: user };
+  res.render("urls_login", templateVars);
+});
+
+// POST - Handle a POST route
+
+app.post("/login", (req, res) => {
+  const email  = req.body.login;
+  const password = req.body.password;
+  if (email === 0 || password === 0) {
+    let templateVars = { status: 403, message: "Email or Password is not valid, Please Register!!!", user: undefined } 
+    return res.render("urls_error", templateVars);
+  }
+  const user = getUserByEmail(email, users);
+  if (!user || password !== user.password) {
+    let templateVars = { status: 403, message: "User or Password is not match!!!" , user: undefined } 
+    return res.render("urls_error", templateVars);
+  }
+  res.cookie('user_id', user.id);
+  res.redirect("/urls");
 });
 
 app.get("/urls.json", (req, res) => {
@@ -85,14 +102,7 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
-// Create a Login page
 
-app.get("/login", (req, res) => {
-  const userID = req.cookies["user_id"];
-  const user = users[userID]
-  let templateVars = { user: user };
-  res.render("urls_login", templateVars);
-});
 
 app.post("/urls", (req, res) => {
   let tempURL = generateRandomString(); 
@@ -105,8 +115,17 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id; 
   const newLongURL = req.body.longURL;
+  const user = req.cookies.user_id;
+  if (!user) {
+    return res.status(400).send("You are not user or you are not logged!");
+  } 
+  if (urlDatabase[req.params.id].userID !== user) {
+    return res.status(400).send("These URL is not belong to you!");
+  } 
+    else {
   urlDatabase[shortURL] = newLongURL;
   res.redirect("/urls")
+    }
 });
 
 // Get Register
@@ -127,7 +146,7 @@ app.post("/register", (req,res) => {
   if (req.body.email === "" || req.body.password === "") {
     let templateVars = { status: 400, message: "Email or Password is Empty!!!"} 
     res.render("urls_error", templateVars);
-  } else if (lookupEmail(req.body.email, users)) {
+  } else if (getUserByEmail(req.body.email, users)) {
     let templateVars = { status: 400, message: "Email is already registered. Try another one!!!"}
     res.render("urls_error", templateVars);
   } else {
@@ -135,17 +154,17 @@ app.post("/register", (req,res) => {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10);
    users[id] = {
      id: id,
      email: email,
-     password: password,
+     password: hashedPassword,
    };
    res.cookie('user_id', id);
    res.redirect("/urls");
 
   }
 });
-
 
 // Delete - handle the POST requests on the server
 
@@ -155,30 +174,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 });
 
-// POST - Handle a POST route
-
-app.post("/login", (req, res) => {
-  const email  = req.body.login;
-  const password = req.body.password;
-  if (email === 0 || password === 0) {
-    let templateVars = { status: 403, message: "Email or Password is not valid, Please Register!!!", user: undefined } 
-    return res.render("urls_error", templateVars);
-  }
-  const user = lookupEmail(email, users);
-  if (!user || password !== user.password) {
-    let templateVars = { status: 403, message: "User or Password is not match!!!" , user: undefined } 
-    return res.render("urls_error", templateVars);
-  }
-  res.cookie('user_id', user.id);
-  res.redirect("/urls");
-});
-
 // Post Logout
+
 app.post("/logout", (req, res) => {
   res.clearCookie ('user_id');
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`Welcome to TinyApp Project, listening on port ${PORT}!`);
 });

@@ -23,18 +23,7 @@ const urlDatabase = {
   }
 };
 
-const users = {
-  "aJ48lW": {
-    id: "aJ48lW",
-    email: "user@example.com",
-    password: bcrypt.hashSync("monkey", 10)
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
-}
+const users = {};
 
 app.get("/", (req, res) => {
   if (cookieHasUser(req.session.user_id, users)) {
@@ -176,7 +165,7 @@ app.post("/login", (req, res) => {
 
 app.post("/logout", (req, res) => {
   req.session = null;
-  res.redirect('/login');
+  res.redirect('/urls');
 });
 
 // Delete - handle the POST requests on the server

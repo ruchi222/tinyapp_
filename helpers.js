@@ -19,7 +19,7 @@ function getUserByEmail (email, users) {
             return users[key];
         }
     }
-    return false;
+    return undefined;
 }
 
 const urlsForUser = (id, user) => {
@@ -34,4 +34,13 @@ const urlsForUser = (id, user) => {
     return userUrls;
 };
 
-module.exports = { getUserByEmail, generateRandomString, urlsForUser };
+/* Checks if current cookie corresponds with a user in the userDatabase */
+const cookieHasUser = function(cookie, userDatabase) {
+  for (const user in userDatabase) {
+    if (cookie === user) {
+      return true;
+    }
+  } return false;
+};
+
+module.exports = { getUserByEmail, generateRandomString, urlsForUser, cookieHasUser };

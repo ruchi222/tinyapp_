@@ -41,26 +41,30 @@ const users = {
   }
 }
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
 app.get("/", (req, res) => {
-  res.send(" Welcome to TinyApp Project!");
+  res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
   const userID = req.session["user_id"];
   const user = users[userID]
   const templateVars = { urls: urlDatabase, user: user }
-  res.render("urls_index", templateVars);
+  if (users[userID] === undefined) {
+    res.status (401).send("Error: First, <a href='/register'> register </a> or <a href='/login'> login </a>");
+    return;
+  }
+  res.render("urls_error", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   const userID = req.session["user_id"];
   const user = users[userID]
+  if (req.session["user_id"]) {
   let templateVars = { user: user }
   res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login?alert=true");
+  }
 });
 
 // Get Register
@@ -89,8 +93,19 @@ app.get("/urls/:shortURL", (req, res) => {
   const longURL = urlDatabase[shortURL];
   const userID = req.session["user_id"];
   const user = users[userID]
+  if (users[userID] === undefined) {
+    res.status (401).send("Not Logged In");
+    return;
+  }
+  let url = urlDatabase[req.params.shortURL];
+  if (url && url.userID === req.session.user_id) {
   const templateVars = { shortURL, longURL, user: user};
   res.render("urls_show", templateVars);
+  } else if (url && url.userID !== req.session.user_id) {
+    res.status (401).send("This URL is not belong you");
+  } else {
+    res.status(404).send("The short URL you entered does not correspond with a long URL at this time.");
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {

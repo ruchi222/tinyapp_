@@ -16,14 +16,13 @@
           <button type="submit" class="btn btn-outline-light" style="margin-left: 2em;">Logout</button>
           </form>
       <% } else { %>
-      <!-- <form class="form-inline" action="/login" method="POST">
-        <input type="text" placeholder="Enter Username" name="username" required>
-        <button type="submit" class="btn btn-outline-light" style="margin-left: 2em;">Login</button>
-      </form> -->
-      <strong><a href="/login">Login</a></strong>
-      |
-      <!-- Not yet a member? -->
-      <strong><a href="/register">Register</a></strong> 
+
+      <div class="collapse navbar-collapse justify-content-end" id="navbarNavAltMarkup">
+        <div class="navbar-nav"></div>
+          <a class="nav-item nav-link" href="/login" style="margin: 1em"><b>Login</b></a>
+          <a class="nav-item nav-link" href="/register" style="margin: 1em"><b>Register</b></a>
+        </div>
+      </div>
 
       <% } %>
       

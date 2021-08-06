@@ -12,11 +12,6 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use(cookieSession({ name: 'session', keys: ["TinyApp"]}));
 
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
-
 const urlDatabase = {
   b6UTxQ: {
       longURL: "https://www.tsn.ca",
@@ -49,11 +44,7 @@ app.get("/urls", (req, res) => {
   const userID = req.session["user_id"];
   const user = users[userID]
   const templateVars = { urls: urlDatabase, user: user }
-  if (users[userID] === undefined) {
-    res.status (401).send("Error: First, <a href='/register'> register </a> or <a href='/login'> login </a>");
-    return;
-  }
-  res.render("urls_error", templateVars);
+  res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {

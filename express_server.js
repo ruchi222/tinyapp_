@@ -47,7 +47,8 @@ app.get("/", (req, res) => {
 app.get("/urls", (req, res) => {
   const userID = req.session["user_id"];
   const user = users[userID]
-  const templateVars = { urls: urlDatabase, user: users[userID] }
+  const urls = urlsForUser(userID, urlDatabase);
+  const templateVars = { urls, user }
   res.render("urls_index", templateVars);
 });
 
@@ -88,16 +89,16 @@ app.get("/urls/:shortURL", (req, res) => {
   const longURL = urlDatabase[shortURL];
   const userID = req.session.user_id;
   const user = users[userID]
-  const confirmUrl = urlsForUser(userID, urlDatabase);
   if (users[userID] === undefined) {
     res.status(401).send("Not Logged In");
     return;
   }
-  let url = urlDatabase[req.params.shortURL];
-  if (url && url.userID === req.session.user_id) {
+  let url = urlDatabase[shortURL];
+  const confirmUrl = urlsForUser(userID, urlDatabase);
+  if (url && url.userID === userID) {
     const templateVars = { shortURL, longURL, user: user, confirmUrl };
     res.render("urls_show", templateVars);
-  } else if (url && url.userID !== req.session.user_id) {
+  } else if (url && url.userID !== userID) {
     res.status(401).send("This URL is not belong you");
   } else {
     res.status(404).send("The short URL you entered does not correspond with a long URL at this time.");
@@ -142,7 +143,7 @@ app.post("/register", (req, res) => {
       email: email,
       password: hashedPassword,
     };
-    res.cookie('user_id', id);
+    req.session.user_id = id;
     res.redirect("/urls");
 
   }
@@ -174,7 +175,7 @@ app.post("/login", (req, res) => {
 // Post Logout
 
 app.post("/logout", (req, res) => {
-  req.session['user_id'] = null;
+  req.session = null;
   res.redirect('/login');
 });
 

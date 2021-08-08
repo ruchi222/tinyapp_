@@ -3,11 +3,11 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const { getUserByEmail, generateRandomString, urlsForUser, cookieHasUser } = require('./helpers');
 
-app.set("view engine", "ejs")
+app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cookieSession({ name: 'session', keys: ["TinyApp"] }));
@@ -37,20 +37,20 @@ app.get("/urls", (req, res) => {
   const userID = req.session["user_id"];
   if (!userID) {
     const templateVars = {status: "401", message: "You do not have permissions to visit this page" };
-    res.render("urls_error", templateVars)
+    res.render("urls_error", templateVars);
     return;
   }
-  const user = users[userID]
+  const user = users[userID];
   const urls = urlsForUser(userID, urlDatabase);
-  const templateVars = { urls, user }
+  const templateVars = { urls, user };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   const userID = req.session["user_id"];
-  const user = users[userID]
+  const user = users[userID];
   if (req.session["user_id"]) {
-    let templateVars = { user: user }
+    let templateVars = { user: user };
     res.render("urls_new", templateVars);
   } else {
     res.redirect("/login?alert=true");
@@ -61,7 +61,7 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/register", (req, res) => {
   const userID = req.session["user_id"];
-  const user = users[userID]
+  const user = users[userID];
   let templateVars = {
     'urls': urlDatabase,
     user: user,
@@ -73,7 +73,7 @@ app.get("/register", (req, res) => {
 
 app.get("/login", (req, res) => {
   const userID = req.session["user_id"];
-  const user = users[userID]
+  const user = users[userID];
   let templateVars = { user: user };
   res.render("urls_login", templateVars);
 });
@@ -82,7 +82,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
   const userID = req.session["user_id"];
-  const user = users[userID]
+  const user = users[userID];
   if (users[userID] === undefined) {
     res.status(401).send("Not Logged In");
     return;
@@ -103,7 +103,7 @@ app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL]) {
     const longURL = urlDatabase[req.params.shortURL]["longURL"];
     if (!longURL) {
-      let templateVars = { status: 302, message: "Email or Password is Empty!!!" }
+      let templateVars = { status: 302, message: "Email or Password is Empty!!!" };
       res.render("urls_error", templateVars);
     } else {
       res.redirect(longURL);
@@ -113,18 +113,18 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   let tempURL = generateRandomString();
-  urlDatabase[tempURL] = { longURL: req.body.longURL, userID: req.session["user_id"] }
-  res.redirect('/urls')
+  urlDatabase[tempURL] = { longURL: req.body.longURL, userID: req.session["user_id"] };
+  res.redirect('/urls');
 });
 
 // POST - Create a Registration Handler
 
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
-    let templateVars = { status: 400, message: "Email or Password is Empty!!!" }
+    let templateVars = { status: 400, message: "Email or Password is Empty!!!" };
     res.render("urls_error", templateVars);
   } else if (getUserByEmail(req.body.email, users)) {
-    let templateVars = { status: 400, message: "Email is already registered. Try another one!!!" }
+    let templateVars = { status: 400, message: "Email is already registered. Try another one!!!" };
     res.render("urls_error", templateVars);
   } else {
 
@@ -150,16 +150,16 @@ app.post("/login", (req, res) => {
   const password = req.body.password;
 
   if (email === 0 || password === 0) {
-    let templateVars = { status: 403, message: "Email or Password is not valid, Please Register!!!", user: undefined }
+    let templateVars = { status: 403, message: "Email or Password is not valid, Please Register!!!", user: undefined };
     return res.render("urls_error", templateVars);
   }
   const user = getUserByEmail(email, users);
   if (!user) {
-    let templateVars = { status: 403, message: "User or Password is not match!!!", user: undefined }
+    let templateVars = { status: 403, message: "User or Password is not match!!!", user: undefined };
     return res.render("urls_error", templateVars);
   }
   if (!bcrypt.compareSync(password, user["password"])) {
-    let templateVars = { status: 403, message: "User or Password is not match!!!", user: undefined }
+    let templateVars = { status: 403, message: "User or Password is not match!!!", user: undefined };
     return res.render("urls_error", templateVars);
   }
   req.session['user_id'] = user.id;
@@ -198,10 +198,9 @@ app.post("/urls/:id", (req, res) => {
   }
   if (urlDatabase[req.params.id].userID !== user) {
     return res.status(400).send("These URL is not belong to you!");
-  }
-  else {
+  } else {
     urlDatabase[shortURL].longURL = newLongURL;
-    res.redirect("/urls")
+    res.redirect("/urls");
   }
 });
 

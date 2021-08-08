@@ -26,7 +26,7 @@ const urlDatabase = {
 const users = {};
 
 app.get("/", (req, res) => {
-  if (cookieHasUser(req.session.user_id, users)) {
+  if (cookieHasUser(req.session["user_id"], users)) {
     res.redirect("/urls");
   } else {
     res.redirect("/login");
@@ -35,6 +35,11 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const userID = req.session["user_id"];
+  if (!userID) {
+    const templateVars = {status: "401", message: "You do not have permissions to visit this page" };
+    res.render("urls_error", templateVars)
+    return;
+  }
   const user = users[userID]
   const urls = urlsForUser(userID, urlDatabase);
   const templateVars = { urls, user }
@@ -76,7 +81,7 @@ app.get("/login", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
-  const userID = req.session.user_id;
+  const userID = req.session["user_id"];
   const user = users[userID]
   if (users[userID] === undefined) {
     res.status(401).send("Not Logged In");
@@ -97,7 +102,7 @@ app.get("/urls/:shortURL", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   if (urlDatabase[req.params.shortURL]) {
     const longURL = urlDatabase[req.params.shortURL]["longURL"];
-    if (longURL === undefined) {
+    if (!longURL) {
       let templateVars = { status: 302, message: "Email or Password is Empty!!!" }
       res.render("urls_error", templateVars);
     } else {
@@ -132,7 +137,7 @@ app.post("/register", (req, res) => {
       email: email,
       password: hashedPassword,
     };
-    req.session.user_id = id;
+    req.session["user_id"] = id;
     res.redirect("/urls");
 
   }
@@ -171,7 +176,7 @@ app.post("/logout", (req, res) => {
 // Delete - handle the POST requests on the server
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const userID = req.session.user_id;
+  const userID = req.session["user_id"];
   const userUrls = urlsForUser(userID, urlDatabase);
   if (Object.keys(userUrls).includes(req.params.shortURL)) {
     const shortURL = req.params.shortURL;
@@ -187,7 +192,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const newLongURL = req.body.updateUrl;
-  const user = req.session.user_id;
+  const user = req.session["user_id"];
   if (!user) {
     return res.status(400).send("You are not user or you are not logged!");
   }
